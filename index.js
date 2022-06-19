@@ -1,7 +1,11 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
+const getAtmDist = require('./helpers');
 dotenv.config();
+
+var ATM_LIST = [];
+
 
 // DB CONNECTION
 // --------------------------------------------------------------------
@@ -12,31 +16,41 @@ var connection = mysql.createConnection({
   database : process.env.DB_NAME
 });
 
-module.exports = connection.connect(function(err) {
+connection.connect(function(err) {
   if (err) {
     console.error('Error Connecting: ' + err.stack);
     return;
   }
 });
 
-function executeQuery(conn, q) {
-  conn.query(q, function (error, results, fields) {
-    if (error) throw error;
-    console.log(results);
-  });  
-}
-// ----------------------------------------------------------------------
+connection.query('SELECT * FROM atms', function (error, results, fields) {
+  if (error) throw error;
+  ATM_LIST = results;
+  
+  // BOT LOGIC
+  const bot = new Telegraf(process.env.TOKEN)
 
-// BOT LOGIC
+  bot.command('start', (ctx) => {
+    ctx.reply('Send us you location, so we know where you are...');
+  })
 
-const bot = new Telegraf(process.env.TOKEN)
+  bot.on('location', (ctx) => {
+    var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
+    for (var i = 0; i < ATM_DISTANCED.length && i < 3; i++){
+      const ATM = ATM_DISTANCED[i];
+      bot.telegram.sendMessage(ctx.chat.id, ATM.atm.name
+      +'\n'+
+      'Distance: '+
+      ATM.dist
+      /1000 + 'km'
+      +'\n'+ `\xF0\x9F\x8E\xB1` +
+      `https://maps.google.com/?q=${ATM.atm.lat},${ATM.atm.lon}`)
+    }
+  })
 
-bot.on('text', (ctx) => {
-  ctx.reply('ፒስ ነሽ '+ctx.message.from.first_name);
-})
+  bot.launch()
 
-bot.launch()
-
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'))
-process.once('SIGTERM', () => bot.stop('SIGTERM'))
+  // Enable graceful stop
+  process.once('SIGINT', () => bot.stop('SIGINT'))
+  process.once('SIGTERM', () => bot.stop('SIGTERM'))  
+});
