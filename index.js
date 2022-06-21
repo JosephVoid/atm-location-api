@@ -2,6 +2,7 @@ const { Telegraf, Markup } = require('telegraf');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const getAtmDist = require('./helpers');
+const geolib = require('geolib');
 dotenv.config();
 
 var ATM_LIST = [];
@@ -23,7 +24,7 @@ connection.connect(function(err) {
   }
 });
 
-connection.query('SELECT * FROM atms', function (error, results, fields) {
+connection.query('SELECT * FROM atmlocation', function (error, results, fields) {
   if (error) throw error;
   ATM_LIST = results;
   
@@ -31,20 +32,18 @@ connection.query('SELECT * FROM atms', function (error, results, fields) {
   const bot = new Telegraf(process.env.TOKEN)
 
   bot.command('start', (ctx) => {
-    ctx.reply('Send us you location, so we know where you are...');
+    ctx.reply('Send us your location, so we know where you are...\nየት እንዳሉ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\ን ባታ ላክ", false)]]));
   })
 
   bot.on('location', (ctx) => {
     var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
-    for (var i = 0; i < ATM_DISTANCED.length && i < 3; i++){
+    for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
       const ATM = ATM_DISTANCED[i];
-      bot.telegram.sendMessage(ctx.chat.id, ATM.atm.name
+      bot.telegram.sendMessage(ctx.chat.id, ATM.atm.LOCATION
       +'\n'+
-      'Distance: '+
-      ATM.dist
-      /1000 + 'km'
-      +'\n'+ `\xF0\x9F\x8E\xB1` +
-      `https://maps.google.com/?q=${ATM.atm.lat},${ATM.atm.lon}`)
+      'Distance: '+ATM.dist/1000 + 'km'
+      +'\n'+
+      `https://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`)
     }
   })
 
