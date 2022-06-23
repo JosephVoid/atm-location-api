@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <title>ATM Mangement</title>
+    <script>
+    </script>
+</head>
+<body>
+    <header class="p-4">
+        <H1>DASHEN ATM BOT IMAGE MANAGMENT</H1>
+    </header>
+    <div>
+        <table class="table table-hover table-bordered" style="padding: 1em;">
+            <thead class="table-dark">
+                <tr>
+                <td>Terminal ID</td>
+                <td>Location</td>
+                <td>Latitude</td>
+                <td>Longitude</td>
+                <td>HAS PIC</td>
+                <td></td>
+                </tr>
+            </thead>
+                <tbody class="table-group-divider">
+                {{#each data}}
+                <tr>
+                    <td>{{this.TERMINAL_ID}}</td>
+                    <td>{{this.LOCATION}}</td>
+                    <td>{{this.LATITIUDE}}</td>
+                    <td>{{this.LONGITUDE}}</td>
+                    {{#if this.PIC}}
+                        <td style="background-color: green;color:white">Yes</td>
+                    {{else}}
+                        <td style="background-color: red;color:white">No</td>
+                    {{/if}}
+                    <td>
+                        <form ref='uploadForm' 
+                            id='uploadForm' 
+                            action='http://localhost:5000/upload?tid={{this.TERMINAL_ID}}' 
+                            method='post' 
+                            encType="multipart/form-data">
+                            <input type="file" name="sampleFile" />
+                            <input type='submit' value='Upload!' />
+                        </form>     
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
