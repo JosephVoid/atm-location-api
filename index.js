@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const getAtmDist = require('./helpers');
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
+const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const exphbs = require('express-handlebars');
 dotenv.config();
@@ -16,7 +18,7 @@ app.engine('hbs', exphbs.engine({
 }));
 
 app.set('view engine', 'hbs');
-
+app.use(bodyParser.urlencoded({extended: false}));
 var ATM_LIST = [];
 
 
@@ -43,24 +45,43 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
   const bot = new Telegraf(process.env.TOKEN)
 
   bot.command('start', (ctx) => {
-    ctx.reply('Send us your location, so we know where you are...\nየት እንዳሉ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\ን ባታ ላክ", false)]]));
+    ctx.reply('Send us your location, so we know where you are...\nየት እንዳሉ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\n ቦታ ላክ", false)]]));
+  })
+
+  bot.command('D@SH_upl0@d', async (ctx) => {
+    connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
+      if (error) throw error;
+
+      results.forEach(async (ATM_PIC) => {
+        if (ATM_PIC.PIC != null && ATM_PIC.FID == null){
+          var file = fs.createReadStream(__dirname+'/upload_images/'+ATM_PIC.PIC);
+          var msg = await bot.telegram.sendPhoto(ctx.chat.id, {source: file});
+          var file_id = msg.photo[0].file_id;
+          connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
+        }
+      })
+    });
   })
 
   bot.on('location', (ctx) => {
     var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
     for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
       const ATM = ATM_DISTANCED[i];
-      if (ATM.atm.PIC != NULL) {
-        bot.telegram.sendPhoto(ctx.chat.id, __dirname + 'upload_images')
+      if (ATM.atm.PIC != null) {
+        bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
+          +'\n'+
+          '🚶🏾‍♂️\tDistance: '+ATM.dist/1000 + 'km'
+          +'\n'+
+          `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
       }
       else {
-        bot.telegram.sendMessage(ctx.chat.id, ATM.atm.LOCATION
+        bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
         +'\n'+
-        'Distance: '+ATM.dist/1000 + 'km'
+        '🚶🏾‍♂️\tDistance: '+ATM.dist/1000 + 'km'
         +'\n'+
-        `https://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`)
-      }
-    }
+        `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
+     }
+     }
   })
 
   bot.launch()
@@ -93,11 +114,13 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     sampleFile.mv(uploadPath, function(err) {
       if (err)
         return res.status(500).send(err);
-
+      
+      // Add pic to db
       connection.query(`UPDATE atmlocation SET PIC="${tid+'.jpg'}" WHERE TERMINAL_ID = "${tid}"`, function (error) {
         if (error) throw error;
       })
-      connection.query('SELECT * FROM atmlocation ORDER BY TERMINAL_ID ASC', function (error, results, fields) {
+      // Update display table
+      connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
         if (error) throw error;
         ATM_LIST = results;
         res.render('main',{data:ATM_LIST});
@@ -105,8 +128,26 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     });
   });
 
+  app.post('/update', (req, res) => {
+    var lat = req.body.lat;
+    var lon = req.body.lon;
+    let tid = req.query.tid;
+
+    // Update Location
+    connection.query(`UPDATE atmlocation SET LATITIUDE=${lat}, LONGITUDE=${lon} WHERE TERMINAL_ID = "${tid}"`, function (error) {
+      if (error) throw error;
+    })
+
+    // Update display table
+    connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
+      if (error) throw error;
+      ATM_LIST = results;
+      res.render('main',{data:ATM_LIST});
+    });
+  })
+
   app.get('/manage', (req, res) => {
-    connection.query('SELECT * FROM atmlocation ORDER BY TERMINAL_ID ASC', function (error, results, fields) {
+    connection.query('SELECT * FROM atmlocation ORDER BY LOCATION ASC', function (error, results, fields) {
       if (error) throw error;
       ATM_LIST = results;
       res.render('main',{data:ATM_LIST});

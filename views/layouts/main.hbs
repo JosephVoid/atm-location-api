@@ -20,8 +20,7 @@
                 <tr>
                 <td>Terminal ID</td>
                 <td>Location</td>
-                <td>Latitude</td>
-                <td>Longitude</td>
+                <td>Latitude and Longitude</td>
                 <td>HAS PIC</td>
                 <td></td>
                 </tr>
@@ -29,10 +28,15 @@
                 <tbody class="table-group-divider">
                 {{#each data}}
                 <tr>
-                    <td>{{this.TERMINAL_ID}}</td>
+                    <td>{{this.TERMINAL_ID}}</td>                    
                     <td>{{this.LOCATION}}</td>
-                    <td>{{this.LATITIUDE}}</td>
-                    <td>{{this.LONGITUDE}}</td>
+                    <td>
+                        <form action="http://localhost:5000/update?tid={{this.TERMINAL_ID}}" method='post' encType="application/json">
+                            <input type="number" name="lat" id="lat" value="{{this.LATITIUDE}}" step="any">
+                            <input type="number" name="lon" id="lon" value="{{this.LONGITUDE}}" step="any">
+                            <input type='submit' value='Update' />
+                        </form>
+                    </td>
                     {{#if this.PIC}}
                         <td style="background-color: green;color:white">Yes</td>
                     {{else}}
