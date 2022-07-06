@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const exphbs = require('express-handlebars');
+const { request } = require('http');
 dotenv.config();
 
 const app = express();
@@ -19,6 +20,8 @@ app.engine('hbs', exphbs.engine({
 
 app.set('view engine', 'hbs');
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(express.static(__dirname + '/views/layouts'));
+app.use(fileUpload());
 var ATM_LIST = [];
 
 
@@ -38,10 +41,11 @@ connection.connect(function(err) {
   }
 });
 
+// BOT COMMANDS AND LOGIC IS HERE
 connection.query('SELECT * FROM atmlocation', function (error, results, fields) {
   if (error) throw error;
   ATM_LIST = results;
-  // BOT LOGIC
+
   const bot = new Telegraf(process.env.TOKEN)
 
   bot.command('start', (ctx) => {
@@ -60,7 +64,7 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
           connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
         }
       })
-    });
+    })
   })
 
   bot.on('location', (ctx) => {
@@ -80,22 +84,14 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
         '🚶🏾‍♂️\tDistance: '+ATM.dist/1000 + 'km'
         +'\n'+
         `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
+      }
      }
-     }
-  })
+    })
 
-  bot.launch()
-  // Enable graceful stop
-  process.once('SIGINT', () => bot.stop('SIGINT'))
-  process.once('SIGTERM', () => bot.stop('SIGTERM'))  
+    bot.launch()
+    process.once('SIGINT', () => bot.stop('SIGINT'))
+    process.once('SIGTERM', () => bot.stop('SIGTERM'))  
 });
-  
-  // ######################################################################################################################
-  // ######################################################################################################################
-  // ######################################################################################################################
-
-  // default options
-  app.use(fileUpload());
 
   app.post('/upload', function(req, res) {
     let sampleFile;
@@ -116,14 +112,14 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
         return res.status(500).send(err);
       
       // Add pic to db
-      connection.query(`UPDATE atmlocation SET PIC="${tid+'.jpg'}" WHERE TERMINAL_ID = "${tid}"`, function (error) {
+      connection.query(`UPDATE atmlocation SET PIC="${tid+'.jpg'}",FID=NULL WHERE TERMINAL_ID = "${tid}"`, function (error) {
         if (error) throw error;
       })
       // Update display table
       connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
         if (error) throw error;
         ATM_LIST = results;
-        res.render('main',{data:ATM_LIST});
+        res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
       });
     });
   });
@@ -142,7 +138,7 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
       if (error) throw error;
       ATM_LIST = results;
-      res.render('main',{data:ATM_LIST});
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
     });
   })
 
@@ -150,10 +146,18 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     connection.query('SELECT * FROM atmlocation ORDER BY LOCATION ASC', function (error, results, fields) {
       if (error) throw error;
       ATM_LIST = results;
-      res.render('main',{data:ATM_LIST});
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'hidden'}});
     });
   })
 
+  app.post('/search', (req, res) => {
+    var search_q = req.body.query;
+    connection.query(`SELECT * FROM atmlocation WHERE LOCATION LIKE "%${search_q}%" ORDER BY LOCATION ASC`, function (error, results, fields) {
+      if (error) throw error;
+      ATM_LIST = results;
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
+    });
+  })
   // If connected successfully to the DB, listen to request
   app.listen(process.env.PORT, () => {
     console.log("Listening on 5000!")
