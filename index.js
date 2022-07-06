@@ -49,7 +49,7 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
   const bot = new Telegraf(process.env.TOKEN)
 
   bot.command('start', (ctx) => {
-    ctx.reply('Send us your location, so we know where you are...\nየት እንዳሉ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\n ቦታ ላክ", false)]]));
+    ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\n ይሄን ይጫኑ", false)]]));
   })
 
   bot.command('D@SH_upl0@d', async (ctx) => {
