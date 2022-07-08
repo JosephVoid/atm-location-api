@@ -9,36 +9,67 @@
     <title>ATM Mangement</title>
     <script>
     </script>
+    <style>
+        .add-cont {
+            margin: 1em 1em;
+            width: 70%;
+            border-radius: 10px;
+        }
+        .srch-cont {
+            margin-top: 1em;
+            width: 30%;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
     <header class="p-4">
         <H1>DASHEN ATM BOT MANAGMENT</H1>
     </header>
-    <div class="p-2">
-        Running on: {{control.host}}
-        http://{{control.host}}:5000/upload?tid={{this.TERMINAL_ID}}
-    </div>
-     <div class="p-2">
-        <h3>SEARCH BY NAME</h3>
-        <form action="http://{{control.host}}:5000/search" method="post" encType="application/json">
-            <input type="text" name="query">
-            <input type="submit" value="Search">
-        </form>
-    </div>
-    <div class="p-2">
-        <h3>ADD ATM</h3>
-         <form action="http://{{control.host}}:5000/add" method="post" encType="application/json">
-            <input type="text" name="query">
-            <input type="submit" value="Add">
-        </form>
+    <div style="display:flex">
+        <div class="srch-cont p-4">
+            <h4>SEARCH</h4>
+            <form action="http://{{control.host}}:5000/search" method="post" encType="application/json">
+                <div>
+                    <label for="srch" style="display: block;">BY NAME</label>
+                    <input type="text" name="query" id="srch">
+                </div>
+                <input type="submit" value="Search" style="margin-top: 1em;">
+            </form>
+        </div>
+        <div class="add-cont p-4">
+            <h4>ADD ATM</h4>
+            <form action="http://{{control.host}}:5000/add" method="post" encType="application/json">
+                <div style="display: flex; justify-content:space-between">
+                    <div>
+                        <label for="tid" style="display: block !important;">TERMINAL ID</label>
+                        <input type="text" name="terminal" id="tid">
+                    </div>
+                    <div>
+                        <label for="tid" style="display: block;">LOCATION</label>
+                        <input type="text" name="loc" id="loc">
+                    </div>
+                    <div>
+                        <label for="tid" style="display: block;">LATITIUDE</label>
+                        <input type="text" name="lat" id="lat">
+                    </div>
+                    <div>
+                        <label for="tid" style="display: block;">LONGITUDE</label>
+                        <input type="text" name="long" id="lon">
+                    </div>
+                </div>
+                <input type="submit" value="Add" style="margin-top: 1em;">
+            </form>
+        </div>
     </div>
     <div style="position: absolute;right: 0;top: 0;padding: 1em;background-color: lightgreen;margin: 2em; visibility: {{control.success}}">
         Successful
     </div>
     <div>
-        <table class="table table-hover table-bordered" style="padding: 1em;">
+        <table class="table table-hover table-bordered" style="padding: 1em;font-size:12px">
             <thead class="table-dark">
                 <tr>
+                <td></td>
                 <td>Terminal ID</td>
                 <td>Location</td>
                 <td>Latitude and Longitude</td>
@@ -50,10 +81,15 @@
                 <tbody class="table-group-divider">
                 {{#each data}}
                 <tr>
+                    <td>
+                        <form action="http://{{../control.host}}:5000/remove?tid={{this.TERMINAL_ID}}" method='post' encType="application/json">
+                            <input type='submit' value='Remove' />
+                        </form>
+                    </td>
                     <td>{{this.TERMINAL_ID}}</td>                    
                     <td>{{this.LOCATION}}</td>
                     <td>
-                        <form action="http://{{control.host}}:5000/update?tid={{this.TERMINAL_ID}}" method='post' encType="application/json">
+                        <form action="http://{{../control.host}}:5000/update?tid={{this.TERMINAL_ID}}" method='post' encType="application/json">
                             <input type="number" name="lat" id="lat" value="{{this.LATITIUDE}}" step="any">
                             <input type="number" name="lon" id="lon" value="{{this.LONGITUDE}}" step="any">
                             <input type='submit' value='Update' />
@@ -72,7 +108,7 @@
                     <td>
                         <form ref='uploadForm' 
                             id='uploadForm' 
-                            action='http://{{control.host}}:5000/upload?tid={{this.TERMINAL_ID}}' 
+                            action='http://{{../control.host}}:5000/upload?tid={{this.TERMINAL_ID}}' 
                             method='post' 
                             encType="multipart/form-data">
                             <input type="file" name="sampleFile" />

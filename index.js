@@ -157,7 +157,7 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     connection.query(`SELECT * FROM atmlocation WHERE LOCATION LIKE "%${search_q}%" ORDER BY LOCATION ASC`, function (error, results, fields) {
       if (error) throw error;
       ATM_LIST = results;
-      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'hidden'}});
     });
   })
   // If connected successfully to the DB, listen to request
