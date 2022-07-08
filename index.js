@@ -9,6 +9,7 @@ const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const exphbs = require('express-handlebars');
 const { request } = require('http');
+
 dotenv.config();
 
 const app = express();
@@ -49,10 +50,11 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
   const bot = new Telegraf(process.env.TOKEN)
 
   bot.command('start', (ctx) => {
-    ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', Markup.keyboard([[Markup.button.locationRequest("Send Location\n ይሄን ይጫኑ", false)]]));
+    ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', 
+    Markup.keyboard([[Markup.button.locationRequest("Send Location\t ይሄን ይጫኑ", false)]]).oneTime().resize());
   })
 
-  bot.command('D@SH_upl0@d', async (ctx) => {
+  bot.command('D@SH_upload', async (ctx) => {
     connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
       if (error) throw error;
 
@@ -74,14 +76,14 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
       if (ATM.atm.PIC != null) {
         bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
           +'\n'+
-          '🚶🏾‍♂️\tDistance: '+ATM.dist/1000 + 'km'
+          '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
           +'\n'+
           `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
       }
       else {
         bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
         +'\n'+
-        '🚶🏾‍♂️\tDistance: '+ATM.dist/1000 + 'km'
+        '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
         +'\n'+
         `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
       }

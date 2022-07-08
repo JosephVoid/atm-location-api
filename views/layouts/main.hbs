@@ -16,16 +16,20 @@
     </header>
     <div class="p-2">
         Running on: {{control.host}}
+        http://{{control.host}}:5000/upload?tid={{this.TERMINAL_ID}}
     </div>
-    <div class="p-2">
+     <div class="p-2">
         <h3>SEARCH BY NAME</h3>
         <form action="http://{{control.host}}:5000/search" method="post" encType="application/json">
             <input type="text" name="query">
-            <input type="submit" value="Run">
+            <input type="submit" value="Search">
         </form>
-        <form action="http://{{control.host}}:5000/add" method="post" encType="application/json">
+    </div>
+    <div class="p-2">
+        <h3>ADD ATM</h3>
+         <form action="http://{{control.host}}:5000/add" method="post" encType="application/json">
             <input type="text" name="query">
-            <input type="submit" value="Run">
+            <input type="submit" value="Add">
         </form>
     </div>
     <div style="position: absolute;right: 0;top: 0;padding: 1em;background-color: lightgreen;margin: 2em; visibility: {{control.success}}">
@@ -39,6 +43,7 @@
                 <td>Location</td>
                 <td>Latitude and Longitude</td>
                 <td>HAS PIC</td>
+                <td>HAS FID</td>
                 <td></td>
                 </tr>
             </thead>
@@ -55,6 +60,11 @@
                         </form>
                     </td>
                     {{#if this.PIC}}
+                        <td style="background-color: green;color:white">Yes</td>
+                    {{else}}
+                        <td style="background-color: red;color:white">No</td>
+                    {{/if}}
+                     {{#if this.FID}}
                         <td style="background-color: green;color:white">Yes</td>
                     {{else}}
                         <td style="background-color: red;color:white">No</td>
