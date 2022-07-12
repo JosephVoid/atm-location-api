@@ -8,17 +8,45 @@
     <script src="bootstrap.min.js"></script>
     <title>ATM Mangement</title>
     <script>
+        const params = new Proxy(new URLSearchParams(window.location.search), {
+            get: (searchParams, prop) => searchParams.get(prop),
+        });
+        // Get the value of "some_key" in eg "https://example.com/?some_key=some_value"
+        let value = params.success; // "some_value"
+        if (value == "1") {
+            window.onload = (e) => {
+                var sc = document.getElementById("success");
+                sc.classList.add('show');
+            }
+        }
     </script>
     <style>
         .add-cont {
             margin: 1em 1em;
             width: 70%;
             border-radius: 10px;
+            font-size: 12px;
         }
         .srch-cont {
             margin-top: 1em;
-            width: 30%;
+            width: 20%;
             border-radius: 10px;
+            font-size: 12px;
+        }
+        .hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .show {
+            display: block !important;
+        }
+        #success {
+            background-color: green;
+            padding: 0.5em;
+            color: white;
+            border-radius: 3px;
+            display: none;
         }
     </style>
 </head>
@@ -26,44 +54,64 @@
     <header class="p-4">
         <H1>DASHEN ATM BOT MANAGMENT</H1>
     </header>
+    <div class="px-4 hdr">
+        <form action="http://{{control.host}}:5000/manage" method="get" encType="application/json">
+            <input type="submit" value="Home" style="margin-top: 1em;">
+        </form>
+        <div id="success">
+            Operation is Successful
+        </div>
+    </div>
     <div style="display:flex">
         <div class="srch-cont p-4">
-            <h4>SEARCH</h4>
+            <h4>Search</h4>
             <form action="http://{{control.host}}:5000/search" method="post" encType="application/json">
                 <div>
-                    <label for="srch" style="display: block;">BY NAME</label>
+                    <label for="srch" style="display: block;">By Name</label>
                     <input type="text" name="query" id="srch">
                 </div>
                 <input type="submit" value="Search" style="margin-top: 1em;">
             </form>
         </div>
         <div class="add-cont p-4">
-            <h4>ADD ATM</h4>
-            <form action="http://{{control.host}}:5000/add" method="post" encType="application/json">
+            <h4>Add ATM</h4>
+            <form action="http://{{control.host}}:5000/add" method="post" encType="multipart/form-data">
                 <div style="display: flex; justify-content:space-between">
                     <div>
-                        <label for="tid" style="display: block !important;">TERMINAL ID</label>
-                        <input type="text" name="terminal" id="tid">
+                        <label for="tid" style="display: block !important;">Terminal ID</label>
+                        <input type="text" name="terminal" id="tid" required="true">
                     </div>
                     <div>
-                        <label for="tid" style="display: block;">LOCATION</label>
-                        <input type="text" name="loc" id="loc">
+                        <label for="tid" style="display: block;">Location</label>
+                        <input type="text" name="loc" id="loc" required="true">
                     </div>
                     <div>
-                        <label for="tid" style="display: block;">LATITIUDE</label>
-                        <input type="text" name="lat" id="lat">
+                        <label for="tid" style="display: block;">Latitude</label>
+                        <input type="text" name="lat" id="lat" required="true">
                     </div>
                     <div>
-                        <label for="tid" style="display: block;">LONGITUDE</label>
-                        <input type="text" name="long" id="lon">
+                        <label for="tid" style="display: block;">Longitude</label>
+                        <input type="text" name="long" id="lon" required="true">
+                    </div>
+                    <div>
+                        <label for="tid" style="display: block;">Picture</label>
+                        <input type="file" name="ATM_PIC" />
                     </div>
                 </div>
                 <input type="submit" value="Add" style="margin-top: 1em;">
             </form>
         </div>
     </div>
-    <div style="position: absolute;right: 0;top: 0;padding: 1em;background-color: lightgreen;margin: 2em; visibility: {{control.success}}">
-        Successful
+    <div class="p-4" style="font-size: 12px;">
+        <h4>SQL</h4>
+        <form action="http://{{control.host}}:5000/sql" method="post" encType="application/json">
+            <div>
+                <label for="srch" style="display: block;">Type SQL query to run on atmlocation table</label>
+                <textarea name="sql" id="sql" cols="180" rows="3"></textarea>            
+            </div>
+            <p style="color:red;">{{err_mess}}</p>
+            <input type="submit" value="Run" style="margin-top: 1em;">
+        </form>
     </div>
     <div>
         <table class="table table-hover table-bordered" style="padding: 1em;font-size:12px">

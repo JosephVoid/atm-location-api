@@ -44,55 +44,55 @@ connection.connect(function(err) {
 
 // BOT COMMANDS AND LOGIC IS HERE
 connection.query('SELECT * FROM atmlocation', function (error, results, fields) {
-  if (error) throw error;
-  ATM_LIST = results;
+  // if (error) throw error;
+  // ATM_LIST = results;
 
-  const bot = new Telegraf(process.env.TOKEN)
+  // const bot = new Telegraf(process.env.TOKEN)
 
-  bot.command('start', (ctx) => {
-    ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', 
-    Markup.keyboard([[Markup.button.locationRequest("Send Location\t ይሄን ይጫኑ", false)]]).oneTime().resize());
-  })
+  // bot.command('start', (ctx) => {
+  //   ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', 
+  //   Markup.keyboard([[Markup.button.locationRequest("Send Location\t ይሄን ይጫኑ", false)]]).oneTime().resize());
+  // })
 
-  bot.command('D@SH_upload', async (ctx) => {
-    connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
-      if (error) throw error;
+  // bot.command('D@SH_upload', async (ctx) => {
+  //   connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
+  //     if (error) throw error;
 
-      results.forEach(async (ATM_PIC) => {
-        if (ATM_PIC.PIC != null && ATM_PIC.FID == null){
-          var file = fs.createReadStream(__dirname+'/upload_images/'+ATM_PIC.PIC);
-          var msg = await bot.telegram.sendPhoto(ctx.chat.id, {source: file});
-          var file_id = msg.photo[0].file_id;
-          connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
-        }
-      })
-    })
-  })
+  //     results.forEach(async (ATM_PIC) => {
+  //       if (ATM_PIC.PIC != null && ATM_PIC.FID == null){
+  //         var file = fs.createReadStream(__dirname+'/upload_images/'+ATM_PIC.PIC);
+  //         var msg = await bot.telegram.sendPhoto(ctx.chat.id, {source: file});
+  //         var file_id = msg.photo[0].file_id;
+  //         connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
+  //       }
+  //     })
+  //   })
+  // })
 
-  bot.on('location', (ctx) => {
-    var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
-    for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
-      const ATM = ATM_DISTANCED[i];
-      if (ATM.atm.PIC != null) {
-        bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
-          +'\n'+
-          '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
-          +'\n'+
-          `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
-      }
-      else {
-        bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
-        +'\n'+
-        '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
-        +'\n'+
-        `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
-      }
-     }
-    })
+  // bot.on('location', (ctx) => {
+  //   var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
+  //   for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
+  //     const ATM = ATM_DISTANCED[i];
+  //     if (ATM.atm.PIC != null && ATM.atm.FID != null) {
+  //       bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
+  //         +'\n'+
+  //         '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
+  //         +'\n'+
+  //         `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
+  //     }
+  //     else {
+  //       bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
+  //       +'\n'+
+  //       '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
+  //       +'\n'+
+  //       `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
+  //     }
+  //    }
+  //   })
 
-    bot.launch()
-    process.once('SIGINT', () => bot.stop('SIGINT'))
-    process.once('SIGTERM', () => bot.stop('SIGTERM'))  
+  //   bot.launch()
+  //   process.once('SIGINT', () => bot.stop('SIGINT'))
+  //   process.once('SIGTERM', () => bot.stop('SIGTERM'))  
 });
 
   app.post('/upload', function(req, res) {
@@ -117,12 +117,8 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
       connection.query(`UPDATE atmlocation SET PIC="${tid+'.jpg'}",FID=NULL WHERE TERMINAL_ID = "${tid}"`, function (error) {
         if (error) throw error;
       })
-      // Update display table
-      connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
-        if (error) throw error;
-        ATM_LIST = results;
-        res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
-      });
+
+      res.redirect("/manage?success=1");
     });
   });
 
@@ -136,12 +132,21 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
       if (error) throw error;
     })
 
-    // Update display table
-    connection.query('SELECT * FROM atmlocation ORDER BY LOCATION DESC', function (error, results, fields) {
-      if (error) throw error;
-      ATM_LIST = results;
-      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'visible'}});
+    res.redirect("/manage?success=1");
+  })
+
+  app.post('/remove', (req, res) => {
+    let tid = req.query.tid;
+
+    fs.unlink(__dirname + "/upload_images/" + tid + ".jpg", (err) => {
+      if (err) throw err;
+      // Remove from DB
+      connection.query(`DELETE FROM atmlocation WHERE TERMINAL_ID = "${tid}"`, function (error) {
+        if (error) throw error;
+      })
     });
+
+    res.redirect("/manage?success=1");
   })
 
   app.get('/manage', (req, res) => {
@@ -160,6 +165,47 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
       res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'hidden'}});
     });
   })
+
+  app.post('/sql', (req, res) => {
+    var sql_query = req.body.sql;
+    connection.query(`${sql_query}`, function (error, results, fields) {
+      if (error) {
+        res.render('main',{err_mess:error.message, control:{host:process.env.HOST, success:'hidden'}});
+      }
+      ATM_LIST = results;
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'hidden'}});
+    });
+  })
+
+  app.post('/add', (req, res) => {
+    
+    if (!req.files || Object.keys(req.files).length === 0) {
+      // return res.status(400).send('No files were uploaded.');
+      connection.query(`INSERT INTO atmlocation (TERMINAL_ID, LOCATION, LATITIUDE, LONGITUDE)
+        VALUES ("${req.body.terminal}", "${req.body.loc}", ${req.body.lat}, ${req.body.long})`, function (error) {
+        if (error) throw error;
+        
+        res.redirect("/manage?success=1"); })
+    }
+
+    // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+    theFile = req.files.ATM_PIC;
+    uploadPath = __dirname + '/upload_images/'+req.body.terminal+'.jpg';
+
+    // Use the mv() method to place the file somewhere on your server
+    theFile.mv(uploadPath, function(err) {
+      if (err)
+        return res.status(500).send(err);
+      
+        connection.query(`INSERT INTO atmlocation (TERMINAL_ID, LOCATION, LATITIUDE, LONGITUDE, PIC)
+        VALUES ("${req.body.terminal}", "${req.body.loc}", ${req.body.lat}, ${req.body.long}, "${req.body.terminal}.jpg")`, function (error) {
+        if (error) throw error;
+        
+        res.redirect("/manage");
+      })
+    })
+  })
+
   // If connected successfully to the DB, listen to request
   app.listen(process.env.PORT, () => {
     console.log("Listening on 5000!")
