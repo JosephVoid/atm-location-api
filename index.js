@@ -44,55 +44,59 @@ connection.connect(function(err) {
 
 // BOT COMMANDS AND LOGIC IS HERE
 connection.query('SELECT * FROM atmlocation', function (error, results, fields) {
-  // if (error) throw error;
-  // ATM_LIST = results;
+  if (error) throw error;
+  ATM_LIST = results;
 
-  // const bot = new Telegraf(process.env.TOKEN)
+  const bot = new Telegraf(process.env.TOKEN)
 
-  // bot.command('start', (ctx) => {
-  //   ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', 
-  //   Markup.keyboard([[Markup.button.locationRequest("Send Location\t ይሄን ይጫኑ", false)]]).oneTime().resize());
-  // })
+  bot.catch((err) =>{
+    console.log("Caught: "+err);
+  })
 
-  // bot.command('D@SH_upload', async (ctx) => {
-  //   connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
-  //     if (error) throw error;
+  bot.command('start', async (ctx) => {
+    ctx.reply('Send us your location, so we know where you are...\nእባክዎ ያሉበትን ቦታ ይላኩልን...', 
+    Markup.keyboard([[Markup.button.locationRequest("Send Location\t ይሄን ይጫኑ", false)]]).oneTime().resize());
+  })
 
-  //     results.forEach(async (ATM_PIC) => {
-  //       if (ATM_PIC.PIC != null && ATM_PIC.FID == null){
-  //         var file = fs.createReadStream(__dirname+'/upload_images/'+ATM_PIC.PIC);
-  //         var msg = await bot.telegram.sendPhoto(ctx.chat.id, {source: file});
-  //         var file_id = msg.photo[0].file_id;
-  //         connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
-  //       }
-  //     })
-  //   })
-  // })
+  bot.command('D@SH_upload', async (ctx) => {
+    connection.query('SELECT PIC, FID, TERMINAL_ID FROM atmlocation', function (error, results) {
+      if (error) throw error;
 
-  // bot.on('location', (ctx) => {
-  //   var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
-  //   for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
-  //     const ATM = ATM_DISTANCED[i];
-  //     if (ATM.atm.PIC != null && ATM.atm.FID != null) {
-  //       bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
-  //         +'\n'+
-  //         '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
-  //         +'\n'+
-  //         `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
-  //     }
-  //     else {
-  //       bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
-  //       +'\n'+
-  //       '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
-  //       +'\n'+
-  //       `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
-  //     }
-  //    }
-  //   })
+      results.forEach(async (ATM_PIC) => {
+        if (ATM_PIC.PIC != null && ATM_PIC.FID == null){
+          var file = fs.createReadStream(__dirname+'/upload_images/'+ATM_PIC.PIC);
+          var msg = await bot.telegram.sendPhoto(ctx.chat.id, {source: file});
+          var file_id = msg.photo[0].file_id;
+          connection.query(`UPDATE atmlocation SET FID='${file_id}' WHERE TERMINAL_ID = '${ATM_PIC.TERMINAL_ID}'`, function (error) {if (error) throw error;});
+        }
+      })
+    })
+  })
 
-  //   bot.launch()
-  //   process.once('SIGINT', () => bot.stop('SIGINT'))
-  //   process.once('SIGTERM', () => bot.stop('SIGTERM'))  
+  bot.on('location', async (ctx) => {
+    var ATM_DISTANCED = getAtmDist(ctx.message.location.latitude, ctx.message.location.longitude, ATM_LIST).sort((a, b) => a.dist - b.dist);
+    for (var i = 0; i < ATM_DISTANCED.length && i < 5; i++){
+      const ATM = ATM_DISTANCED[i];
+      if (ATM.atm.PIC != null && ATM.atm.FID != null) {
+        bot.telegram.sendPhoto(ctx.chat.id, ATM.atm.FID, {caption:'🏢\t'+ATM.atm.LOCATION.toUpperCase()
+          +'\n'+
+          '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
+          +'\n'+
+          `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`}, Markup.removeKeyboard())
+      }
+      else {
+        bot.telegram.sendMessage(ctx.chat.id, '🏢\t'+ATM.atm.LOCATION.toUpperCase()
+        +'\n'+
+        '🚶🏾‍♂️\tDistance: '+ (ATM.dist/1000 < 1 ? ATM.dist + ' m' : ATM.dist/1000 + ' km')
+        +'\n'+
+        `🗺\thttps://maps.google.com/?q=${ATM.atm.LATITIUDE},${ATM.atm.LONGITUDE}`,Markup.removeKeyboard())
+      }
+     }
+    })
+
+    bot.launch()
+    process.once('SIGINT', () => bot.stop('SIGINT'))
+    process.once('SIGTERM', () => bot.stop('SIGTERM'))  
 });
 
   app.post('/upload', function(req, res) {
