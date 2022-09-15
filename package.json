@@ -13,7 +13,8 @@
     "nodemon": "^2.0.16",
     "path": "^0.12.7",
     "pm2": "^5.2.0",
-    "telegraf": "^4.8.5"
+    "telegraf": "^4.8.5",
+    "telegraf-ratelimit": "^2.0.0"
   },
   "scripts": {
     "start:prod": "pm2 start index.js && pm2 logs",
