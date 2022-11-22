@@ -17,9 +17,9 @@
     "telegraf-ratelimit": "^2.0.0"
   },
   "scripts": {
-    "start:prod": "pm2 start index.js && pm2 logs",
+    "start:prod": "pm2 start index.js --name BOT && pm2 logs",
     "stop": "pm2 stop index",
-    "start": "nodemon index.js"
+    "start": "set NODE_ENV=uat&& nodemon index.js"
   },
   "name": "atm-location-api",
   "version": "1.0.0",

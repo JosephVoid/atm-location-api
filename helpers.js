@@ -1,6 +1,7 @@
 const geolib = require('geolib');
+const fs = require('fs');
 
-module.exports = getAtmDist = (userLat, userLon, AtmList) => {
+const getAtmDist = (userLat, userLon, AtmList) => {
     var ATMdist = [];
     AtmList.forEach(ATM => {
         ATMdist.push(
@@ -10,4 +11,16 @@ module.exports = getAtmDist = (userLat, userLon, AtmList) => {
     });
     console.log(userLat, userLon);
     return ATMdist;
+}
+
+const writeToLog = (dataToWrite) => {
+  fs.appendFile('log.txt', dataToWrite, function (err) {
+    if (err) throw err;
+    console.log('Saved!');
+  });
+}
+
+module.exports = {
+  writeToLog,
+  getAtmDist
 }
