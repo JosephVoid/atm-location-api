@@ -10,6 +10,11 @@ const fileUpload = require('express-fileupload');
 const exphbs = require('express-handlebars');
 const { request } = require('http');
 const rateLimit = require('telegraf-ratelimit')
+var https = require('https');
+
+var privateKey  = fs.readFileSync('keys/privateKey.key', 'utf8');
+var certificate = fs.readFileSync('keys/certificate.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
 
 dotenv.config();
 
@@ -269,7 +274,16 @@ connection.query('SELECT * FROM atmlocation', function (error, results, fields) 
     })
   })
 
-  // If connected successfully to the DB, listen to request
-  app.listen(process.env.PORT, () => {
-    console.log("Listening on 5000!")
+  app.get('/', (req, res) => {
+    connection.query('SELECT * FROM atmlocation ORDER BY LOCATION ASC', function (error, results, fields) {
+      if (error) throw error;
+      ATM_LIST = results;
+      res.render('main',{data:ATM_LIST, control:{host:process.env.HOST, success:'hidden'}});
+    });
   })
+
+  var httpsServer = https.createServer(credentials, app);
+
+  httpsServer.listen(443, () => {
+    console.log("Listening on 443!")
+  });
